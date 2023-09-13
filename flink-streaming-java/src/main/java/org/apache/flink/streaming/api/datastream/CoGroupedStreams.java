@@ -34,6 +34,8 @@ import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.operators.sort.EOFCoGroupOperator;
+import org.apache.flink.streaming.api.windowing.assigners.EndOfStreamWindows;
 import org.apache.flink.streaming.api.windowing.assigners.WindowAssigner;
 import org.apache.flink.streaming.api.windowing.evictors.Evictor;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -48,6 +50,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.flink.util.Preconditions.checkState;
 
 /**
  * {@code CoGroupedStreams} represents two {@link DataStream DataStreams} that have been co-grouped.
@@ -365,6 +368,22 @@ public class CoGroupedStreams<T1, T2> {
                 CoGroupFunction<T1, T2, T> function, TypeInformation<T> resultType) {
             // clean the closure
             function = input1.getExecutionEnvironment().clean(function);
+
+            // Using EOFCoGroupOperator when the window assigner is EndOfStreamWindows and both
+            // trigger and evictor are null
+            if (windowAssigner instanceof EndOfStreamWindows) {
+                checkState(
+                        trigger == null,
+                        "Trigger can't be specified in `EndOfStreamWindows`."
+                                + "Try to use it in `GlobalWindows`");
+                checkState(evictor == null);
+                EOFCoGroupOperator<T1, T2, KEY, T> coGroupOperator =
+                        new EOFCoGroupOperator<>(function);
+                return input1.connect(input2)
+                        .keyBy(keySelector1, keySelector2)
+                        .transform("CoGroup", resultType, coGroupOperator)
+                        .setParallelism(Math.max(input1.getParallelism(), input2.getParallelism()));
+            }
 
             UnionTypeInfo<T1, T2> unionType =
                     new UnionTypeInfo<>(input1.getType(), input2.getType());

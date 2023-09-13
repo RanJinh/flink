@@ -21,6 +21,10 @@ import org.apache.flink.api.common.functions.CoGroupFunction;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.operators.TwoInputStreamOperator;
+import org.apache.flink.streaming.api.operators.sort.EOFCoGroupOperator;
+import org.apache.flink.streaming.api.transformations.TwoInputTransformation;
+import org.apache.flink.streaming.api.windowing.assigners.EndOfStreamWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
@@ -80,5 +84,23 @@ public class CoGroupedStreamsTest {
 
         Assert.assertEquals(
                 lateness.toMilliseconds(), withLateness.getAllowedLateness().toMilliseconds());
+    }
+
+    @Test
+    public void testEndOfStreamWindowsCoGroup() {
+        CoGroupedStreams.WithWindow<String, String, String, TimeWindow> withWindow =
+                dataStream1
+                        .coGroup(dataStream2)
+                        .where(keySelector)
+                        .equalTo(keySelector)
+                        .window(EndOfStreamWindows.get());
+        DataStream<String> dataStream =
+                withWindow.apply(coGroupFunction, BasicTypeInfo.STRING_TYPE_INFO);
+        TwoInputTransformation<String, String, String> transform =
+                (TwoInputTransformation<String, String, String>) dataStream.getTransformation();
+
+        TwoInputStreamOperator<String, String, String> operator = transform.getOperator();
+
+        Assert.assertTrue(operator instanceof EOFCoGroupOperator);
     }
 }

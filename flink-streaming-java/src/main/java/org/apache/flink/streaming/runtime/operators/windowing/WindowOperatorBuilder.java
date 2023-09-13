@@ -37,6 +37,7 @@ import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.ReduceApplyProcessWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.ReduceApplyWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.EndOfStreamWindows;
 import org.apache.flink.streaming.api.windowing.assigners.MergingWindowAssigner;
 import org.apache.flink.streaming.api.windowing.assigners.WindowAssigner;
 import org.apache.flink.streaming.api.windowing.evictors.Evictor;
@@ -57,6 +58,8 @@ import org.apache.flink.util.Preconditions;
 import javax.annotation.Nullable;
 
 import java.lang.reflect.Type;
+
+import static org.apache.flink.util.Preconditions.checkState;
 
 /**
  * A builder for creating {@link WindowOperator WindowOperators}.
@@ -345,5 +348,17 @@ public class WindowOperatorBuilder<T, K, W extends Window> {
     @VisibleForTesting
     public long getAllowedLateness() {
         return allowedLateness;
+    }
+
+    public boolean canApplyEndOfStreamOperator() {
+        if (windowAssigner instanceof EndOfStreamWindows) {
+            checkState(
+                    trigger instanceof EndOfStreamWindows.EndOfStreamTrigger,
+                    "Trigger can't be specified in `EndOfStreamWindows`."
+                            + "Try to use it in `GlobalWindows`");
+            checkState(evictor == null);
+            return true;
+        }
+        return false;
     }
 }
