@@ -18,7 +18,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -86,11 +86,11 @@ under the License.
 			<scope>test</scope>
 		</dependency>
 
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-statebackend-rocksdb</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-statebackend-rocksdb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- Dependencies for MatrixVectorMul. We exclude native libraries
 		because it is not available in all the operating systems and architectures. Moreover,
@@ -119,7 +119,7 @@ under the License.
 			</exclusions>
 		</dependency>
 
-    </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -155,6 +155,30 @@ under the License.
 						<goals>
 							<goal>test-jar</goal>
 						</goals>
+					</execution>
+
+					<!-- Iteration -->
+					<execution>
+						<id>Iteration</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>Iteration</classifier>
+
+							<archive>
+								<manifestEntries>
+									<program-class>org.apache.flink.streaming.examples.iteration.IterateExample</program-class>
+								</manifestEntries>
+							</archive>
+
+							<includes>
+								<include>org/apache/flink/streaming/examples/iteration/*.class</include>
+								<include>META-INF/LICENSE</include>
+								<include>META-INF/NOTICE</include>
+							</includes>
+						</configuration>
 					</execution>
 
 					<!-- WindowJoin -->
@@ -258,6 +282,115 @@ under the License.
 						</configuration>
 					</execution>
 
+					<!-- OperatorDelayedDeployDataStream -->
+					<execution>
+						<id>OperatorDelayedDeployDataStream</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>OperatorDelayedDeployDataStream</classifier>
+
+							<archive>
+								<manifestEntries>
+									<program-class>org.apache.flink.streaming.examples.ml.OperatorDelayedDeployDataStream</program-class>
+								</manifestEntries>
+							</archive>
+
+							<includes>
+								<include>org/apache/flink/streaming/examples/ml/OperatorDelayedDeployDataStream.class</include>
+								<include>org/apache/flink/streaming/examples/ml/OperatorDelayedDeployDataStream$*.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool$*.class</include>
+								<include>META-INF/LICENSE</include>
+								<include>META-INF/NOTICE</include>
+							</includes>
+						</configuration>
+					</execution>
+
+					<!-- OperatorDelayedDeployDataStreamInOneSlot -->
+					<execution>
+						<id>OperatorDelayedDeployDataStreamInOneSlot</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>OperatorDelayedDeployDataStreamInOneSlot</classifier>
+
+							<archive>
+								<manifestEntries>
+									<program-class>org.apache.flink.streaming.examples.ml.OperatorDelayedDeployDataStreamInOneSlot</program-class>
+								</manifestEntries>
+							</archive>
+
+							<includes>
+								<include>org/apache/flink/streaming/examples/ml/OperatorDelayedDeployDataStreamInOneSlot.class</include>
+								<include>org/apache/flink/streaming/examples/ml/OperatorDelayedDeployDataStreamInOneSlot$*.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool$*.class</include>
+								<include>META-INF/LICENSE</include>
+								<include>META-INF/NOTICE</include>
+							</includes>
+						</configuration>
+					</execution>
+
+					<!-- CoGroupDataStream -->
+					<execution>
+						<id>CoGroupDataStream</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>CoGroupDataStream</classifier>
+
+							<archive>
+								<manifestEntries>
+									<program-class>org.apache.flink.streaming.examples.ml.CoGroupDataStream</program-class>
+								</manifestEntries>
+							</archive>
+
+							<includes>
+								<include>org/apache/flink/streaming/examples/ml/CoGroupDataStream.class</include>
+								<include>org/apache/flink/streaming/examples/ml/CoGroupDataStream$*.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool$*.class</include>
+								<include>META-INF/LICENSE</include>
+								<include>META-INF/NOTICE</include>
+							</includes>
+						</configuration>
+					</execution>
+
+					<!-- CoGroupDataStream -->
+					<execution>
+						<id>AggregationBenchmark</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>AggregationBenchmark</classifier>
+
+							<archive>
+								<manifestEntries>
+									<program-class>org.apache.flink.streaming.examples.ml.AggregationBenchmark</program-class>
+								</manifestEntries>
+							</archive>
+
+							<includes>
+								<include>org/apache/flink/streaming/examples/ml/AggregationBenchmark.class</include>
+								<include>org/apache/flink/streaming/examples/ml/AggregationBenchmark$*.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool.class</include>
+								<include>org/apache/flink/streaming/examples/utils/ParameterTool$*.class</include>
+								<include>META-INF/LICENSE</include>
+								<include>META-INF/NOTICE</include>
+							</includes>
+						</configuration>
+					</execution>
+
+					<!-- TopSpeedWindowing -->
 				</executions>
 			</plugin>
 
@@ -423,6 +556,10 @@ under the License.
 								<copy file="${project.basedir}/target/flink-examples-streaming-${project.version}-WindowJoin.jar" tofile="${project.basedir}/target/WindowJoin.jar" />
 								<copy file="${project.basedir}/target/flink-examples-streaming-${project.version}-WordCount.jar" tofile="${project.basedir}/target/WordCount.jar" />
 								<copy file="${project.basedir}/target/flink-examples-streaming-${project.version}-SocketWindowWordCount.jar" tofile="${project.basedir}/target/SocketWindowWordCount.jar" />
+								<copy file="${project.basedir}/target/flink-examples-streaming-${project.version}-OperatorDelayedDeployDataStream.jar" tofile="${project.basedir}/target/OperatorDelayedDeployDataStream.jar" />
+								<copy file="${project.basedir}/target/flink-examples-streaming-${project.version}-OperatorDelayedDeployDataStreamInOneSlot.jar" tofile="${project.basedir}/target/OperatorDelayedDeployDataStreamInOneSlot.jar" />
+								<copy file="${project.basedir}/target/flink-examples-streaming-${project.version}-CoGroupDataStream.jar" tofile="${project.basedir}/target/CoGroupDataStream.jar" />
+								<copy file="${project.basedir}/target/flink-examples-streaming-${project.version}-AggregationBenchmark.jar" tofile="${project.basedir}/target/AggregationBenchmark.jar" />
 							</target>
 						</configuration>
 					</execution>
