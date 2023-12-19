@@ -39,8 +39,10 @@ import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
 import org.apache.flink.streaming.api.operators.OutputTypeConfigurable;
+import org.apache.flink.streaming.api.operators.sort.EOFAggregationOperator;
 import org.apache.flink.streaming.api.transformations.OneInputTransformation;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
+import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
@@ -841,6 +843,28 @@ public class WindowTranslationTest {
                 winOperator.getKeySelector(),
                 BasicTypeInfo.STRING_TYPE_INFO,
                 new Tuple3<>("hello", "hallo", 1));
+    }
+
+    @Test
+    public void testAggregateWithEndOfStreamTrigger() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        DataStream<Tuple3<String, String, Integer>> source =
+                env.fromElements(Tuple3.of("hello", "hallo", 1), Tuple3.of("hello", "hallo", 2));
+
+        DataStream<Integer> dataStream =
+                source.keyBy(new Tuple3KeySelector())
+                        .window(GlobalWindows.createWithEndOfStreamTrigger())
+                        .aggregate(new DummyAggregationFunction());
+
+        final OneInputTransformation<Tuple3<String, String, Integer>, Integer> transform =
+                (OneInputTransformation<Tuple3<String, String, Integer>, Integer>)
+                        dataStream.getTransformation();
+
+        final OneInputStreamOperator<Tuple3<String, String, Integer>, Integer> operator =
+                transform.getOperator();
+
+        Assert.assertTrue(operator instanceof EOFAggregationOperator);
     }
 
     // ------------------------------------------------------------------------

@@ -28,12 +28,15 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeutils.CompositeTypeSerializerSnapshot;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.TypeSerializerSnapshot;
+import org.apache.flink.api.java.Utils;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.operators.translation.WrappingFunction;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.operators.sort.EOFCoGroupOperator;
+import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
 import org.apache.flink.streaming.api.windowing.assigners.WindowAssigner;
 import org.apache.flink.streaming.api.windowing.evictors.Evictor;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -365,6 +368,25 @@ public class CoGroupedStreams<T1, T2> {
                 CoGroupFunction<T1, T2, T> function, TypeInformation<T> resultType) {
             // clean the closure
             function = input1.getExecutionEnvironment().clean(function);
+
+            // Using EOFCoGroupOperator when the window assigner is GlobalWindows with
+            // EndOfStreamTrigger and both trigger and evictor are not specified.
+            if (windowAssigner instanceof GlobalWindows
+                    && windowAssigner.getDefaultTrigger()
+                            instanceof GlobalWindows.EndOfStreamTrigger
+                    && trigger == null
+                    && evictor == null) {
+                EOFCoGroupOperator<T1, T2, KEY, T> coGroupOperator =
+                        new EOFCoGroupOperator<>(function);
+                final String opName = windowAssigner.getClass().getSimpleName();
+                final String udfName = "CoGroupedStreams." + Utils.getCallLocationName();
+                final String opDescription = "Window(" + windowAssigner + ", " + udfName + ")";
+                return input1.connect(input2)
+                        .keyBy(keySelector1, keySelector2)
+                        .transform(opName, resultType, coGroupOperator)
+                        .setParallelism(Math.max(input1.getParallelism(), input2.getParallelism()))
+                        .setDescription(opDescription);
+            }
 
             UnionTypeInfo<T1, T2> unionType =
                     new UnionTypeInfo<>(input1.getType(), input2.getType());
